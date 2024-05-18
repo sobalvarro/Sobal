@@ -86,6 +86,7 @@
             this.Controls.Add(this.minButton);
             this.Name = "SForm";
             this.Text = "SForm";
+            this.Load += new System.EventHandler(this.SForm_Load);
             this.ResumeLayout(false);
 
         }
