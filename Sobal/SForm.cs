@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -52,7 +53,6 @@ namespace Sobal
                     useDark = value == Theme.Dark;
                 }
 
-
                 if (useDark)
                 {
                     BackColor = Color.FromArgb(20, 20, 20);
@@ -74,29 +74,38 @@ namespace Sobal
             }
         }
 
-
         public CornerType CornerType
         {
             get { return cornerType; }
             set { cornerType = value; }
         }
 
-
         public Color BorderColor { get; set; } = Color.Gray;
-
-
-
-
-
-
 
 
         public SForm()
         {
             InitializeComponent();
             Theme = theme;
-
-
+        }
+        private void SForm_Load(object sender, EventArgs e)
+        {
+            if (!IsWin11orGreater())
+            {
+                //Add four panels
+                Panel ptop = new Panel();
+                Panel pleft = new Panel();
+                Panel pright = new Panel();
+                Panel pbottom = new Panel();
+                Controls.Add(ptop);
+                Controls.Add(pleft);
+                Controls.Add(pright);
+                Controls.Add(pbottom);
+                ptop.Location = new Point(0, 0); ptop.Width = Width; ptop.Height = 1; ptop.BackColor = BorderColor; ptop.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right; ptop.BringToFront();
+                pleft.Location = new Point(0, 0); pleft.Width = 1; pleft.Height = Height; pleft.BackColor = BorderColor; pleft.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
+                pright.Location = new Point(Width - 1, 0); pright.Width = 1; pright.Height = Height; pright.BackColor = BorderColor; pright.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right; pright.BringToFront();
+                pbottom.Location = new Point(0, Height - 1); pbottom.Width = Width; pbottom.Height = 1; pbottom.BackColor = BorderColor; pbottom.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            }
         }
 
         [DllImport("user32.dll")]
@@ -108,15 +117,11 @@ namespace Sobal
         [DllImport("user32.dll")]
         static extern int SetLayeredWindowAttributes(IntPtr hwnd, uint crKey, byte bAlpha, uint dwFlags);
 
-        private string ToBgr(Color c)
-        {
-            return $"{c.B:X2}{c.G:X2}{c.R:X2}";
-        }
+
         protected override CreateParams CreateParams
         {
             get
             {
-
                 CreateParams cp = base.CreateParams;
 
                 cp.ClassStyle |= 0x00020000; return cp;
@@ -128,6 +133,20 @@ namespace Sobal
             //When the form is created
             if (m.Msg == WM.WM_CREATE)
             {
+                //Check if the Segoe Fluent Icons exist
+                if (!IsFontInstalled("Segoe Fluent Icons"))
+                {
+                    minButton.Font = Font;
+                    maxButton.Font = Font;
+                    closeButton.Font = Font;
+
+                    minButton.Text = "\u2014";
+                    maxButton.Text = "\u25a2";
+                    closeButton.Text = "\u2715";
+                }
+
+
+
                 //This timer helps to set the back color of the button normal after mouse is not longer over the button
                 maxButtonTimer = new Timer();
                 maxButtonTimer.Interval = 1;
@@ -148,7 +167,7 @@ namespace Sobal
                 //Set corner shape, round, semi round or no corner
                 int cornerShape = (int)cornerType;
                 DwmSetWindowAttribute(Handle, DWMWA.WINDOW_CORNER_PREFERENCE, ref cornerShape, sizeof(uint));
-                
+
 
                 //Set the border thickness
                 MARGINS margins = new MARGINS
@@ -234,28 +253,8 @@ namespace Sobal
                     Padding = new Padding(0, 0, 0, 0);
                 }
 
-
-                //If Windows is < 11 then draw manually the borders
-
-                //Pen pen = new Pen(BorderColor);
-
-                //Graphics graphics = CreateGraphics();
-                //graphics.Clear(BackColor);
-                //graphics.DrawRectangle(pen,0,0,Width-1,Height-1);
-                //graphics.DrawLine(pen, 0, 0, Width - 1, 0);
-                //graphics.DrawLine(pen, 0, 0, 0, Height - 1);
-                //graphics.DrawLine(pen, Width - 1, 0, Width - 1, Height - 1);
-                //graphics.DrawLine(pen, 0, Height - 1, Width - 1, Height - 1);
                 return;
             }
-            //else if(m.Msg == 0x0232)
-            //{
-            //    //Pen pen = new Pen(BorderColor);
-
-            //    //Graphics graphics = CreateGraphics();
-            //    //graphics.DrawRectangle(pen, 0, 0, Width - 1, Height - 1);
-            //    //return;
-            //}
             else if (m.Msg == WM.NCCALCSIZE && m.WParam.ToInt32() == 1)
             {
 
@@ -289,7 +288,7 @@ namespace Sobal
             WindowState = FormWindowState.Minimized;
         }
 
-        private static Color ChangeColor(Color color, int amount)
+        public static Color ChangeColor(Color color, int amount)
         {
             // Use Math.Min and Math.Max for concise clamping
             int red = Math.Min(255, Math.Max(0, color.R + amount));
@@ -311,7 +310,7 @@ namespace Sobal
                 return false;
             }
         }
-        private bool IsWin11orGreater()
+        public static bool IsWin11orGreater()
         {
             return false;
 
@@ -320,23 +319,22 @@ namespace Sobal
             return buildNo >= 22000;
 
         }
-
-        private void SForm_Load(object sender, EventArgs e)
+        public static bool IsFontInstalled(string fontName)
         {
-            //Add four panels
-            Panel ptop = new Panel();
-            Panel pleft = new Panel();
-            Panel pright = new Panel();
-            Panel pbottom = new Panel();
-            Controls.Add(ptop);
-            Controls.Add(pleft);
-            Controls.Add(pright);
-            Controls.Add(pbottom);
-            ptop.Location = new Point(0, 0); ptop.Width = Width; ptop.Height = 1; ptop.BackColor = BorderColor; ptop.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;ptop.BringToFront() ;
-            pleft.Location = new Point(0, 0); pleft.Width = 1; pleft.Height = Height; pleft.BackColor = BorderColor; pleft.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
-            pright.Location = new Point(Width - 1, 0); pright.Width = 1; pright.Height = Height; pright.BackColor = BorderColor; pright.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;pright.BringToFront() ;
-            pbottom.Location = new Point(0, Height - 1); pbottom.Width = Width; pbottom.Height = 1; pbottom.BackColor = BorderColor; pbottom.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            return false;
+            using (var testFont = new Font(fontName, 8))
+            {
+                return 0 == string.Compare(
+                  fontName,
+                  testFont.Name,
+                  StringComparison.InvariantCultureIgnoreCase);
+            }
         }
+        public static string ToBgr(Color c)
+        {
+            return $"{c.B:X2}{c.G:X2}{c.R:X2}";
+        }
+
     }
 
 }

@@ -31,12 +31,14 @@ namespace Sobal
                 //Check the current windows state and maximize or restore
                 if (form.WindowState == FormWindowState.Normal)
                 {
-                    Text = "";
+                    Text = SForm.IsFontInstalled("Segoe Fluent Icons")?"\ue923":"\u2750";
+                    //Text = "";
                     form.WindowState = FormWindowState.Maximized;
                 }
                 else
                 {
-                    Text = "";
+                    Text = SForm.IsFontInstalled("Segoe Fluent Icons") ? "\ue922": "\u25a2";
+                    //Text = "";
                     form.WindowState = FormWindowState.Normal;
                 }
 
